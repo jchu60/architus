@@ -128,6 +128,30 @@ class Twitch(commands.Cog, name="Twitch Notification"):
 
         await ctx.send(embed=em)
 
+    @commands.command()
+    async def multitwitch(self, ctx):
+        streams = await self.twitch_stream.select_by_guild(ctx.guild.id)
+        if len(streams) == 0:
+            await ctx.send("Not subscribed to any streams.")
+            return
+        user_info = await self.get_users([str(row["stream_user_id"]) for row in streams])
+        stream_info = await self.get_streams([str(row["stream_user_id"]) for row in streams])
+        user_and_stream = {stream["user_id"]:stream for stream in stream_info}
+        multitwitch = "https://multitwitch.tv/"
+        for user in user_info:
+            try:
+                stream = user_and_stream[user["id"]]
+                live = True
+            except KeyError:
+                live = False
+            if live:
+                multitwitch += user["display_name"] + "/"
+
+        if multitwitch == "https://multitwitch.tv/":
+            await ctx.send("No subscribed users are online.")
+        else:
+            await ctx.send(multitwitch)
+
     async def update(self, stream):
         rows = await self.twitch_stream.select_distinct_by_stream_id(int(stream['user_id']))
         guilds = {self.bot.get_guild(r['guild_id']) for r in rows}
