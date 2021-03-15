@@ -206,6 +206,7 @@ class ListGuilds(CustomResource):
 class Twitch(CustomResource):
     def get(self):
         challenge = request.args.get("hub.challenge")
+        logger.debug(request.headers['X-Hub-Signature'])
         return make_response(challenge, StatusCodes.OK_200)
 
     def post(self):
